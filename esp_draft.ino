@@ -1,15 +1,11 @@
-
-
-
 #include <ESP32Servo.h> 
-#include <LiquidCrystal.h>
 
 // oled declaration
-//#include <Wire.h>
-//#include <Adafruit_GFX.h>
-//#include <Adafruit_SSD1306.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
-// Adafruit_SSD1306 display(128, 64, &Wire, -1);
+Adafruit_SSD1306 display(128, 64, &Wire, -1);
 // Pin assignments
 
 //esp pins
@@ -17,20 +13,20 @@ const int SERVO_1_PIN = 18;
 const int SERVO_2_PIN = 19;
 
 // LCD connections for esp: RS, E, D4, D5, D6, D7
-LiquidCrystal lcd(23, 22, 21, 25, 26, 27);
+// LiquidCrystal lcd(23, 22, 21, 25, 26, 27);
 
 // OLED connections
-// #define SCREEN_WIDTH 128
-// #define SCREEN_HEIGHT 64
-// #define OLED_RESET -1
-// #define OLED_ADDRESS 0x3C
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+#define OLED_ADDRESS 0x3C
 
-// Adafruit_SSD1306 display(
-  // SCREEN_WIDTH,
-  // SCREEN_HEIGHT,
-  // &Wire,
-  // OLED_RESET
-//);
+Adafruit_SSD1306 display(
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT,
+  &Wire,
+  OLED_RESET
+);
 
 // muscle sensors template and variables
 const int BUTTON_1_PIN = 2;  // Correct muscle
@@ -86,13 +82,13 @@ for (int i = 0; i < 3; i++)
 
 void happy_face()
 {
-  lcd.clear();
+  /*lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Happy! :");
 
   lcd.setCursor(0, 1);
-  lcd.print("Muscle correct"); 
-/*  // display.clearDisplay(); // clears prev face 
+  lcd.print("Muscle correct");*/
+  display.clearDisplay(); // clears prev face 
 
   // Drawing eyes
   display.fillCircle(38, 23, 5, WHITE);
@@ -104,19 +100,19 @@ void happy_face()
   display.drawLine(64, 52, 78, 48, WHITE);
   display.drawLine(78, 48, 88, 40, WHITE);
 
-  display.display() // sends drawing to OLED*/
+  display.display() // sends drawing to OLED
 }
 
 void sad_face()
 {
-  lcd.clear();
+  /*lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Sad face :(");
 
   lcd.setCursor(0, 1);
-  lcd.print("Wrong muscle");
-/*
-  //display.clearDisplay();
+  lcd.print("Wrong muscle");*/
+
+  display.clearDisplay();
 
   // Draw eyes
   display.fillCircle(38, 23, 5, WHITE);
@@ -128,18 +124,18 @@ void sad_face()
   display.drawLine(64, 40, 78, 43, WHITE);
   display.drawLine(78, 43, 88, 50, WHITE);
 
-  display.display();*/
+  display.display();
 }
 
 void confused_face()
 {
-  lcd.clear();
+  /*lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Confused!?");
   lcd.setCursor(0, 1);
-  lcd.print("Both pressed");
-  /*
-  //display.clearDisplay();
+  lcd.print("Both pressed");*/
+  
+  display.clearDisplay();
 
   // Draw eyes
   display.fillCircle(38, 25, 5, WHITE);
@@ -154,18 +150,18 @@ void confused_face()
   display.drawLine(60, 43, 72, 48, WHITE);
   display.drawLine(72, 48, 80, 44, WHITE);
 
-  display.display();*/
+  display.display();
 }
 
 void sleepy_face()
 {
-  lcd.clear();
+  /*lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Sleepy... zZ");
   lcd.setCursor(0, 1);
   lcd.print("Waiting...");
-/*
-  //display.clearDisplay();
+*/
+  display.clearDisplay();
 
   // Draw eyes (closed)
   display.drawLine(27, 25, 49, 25, WHITE);
@@ -190,13 +186,13 @@ void sleepy_face()
 
 void display_disconnect()
 {
-  lcd.clear();
+  /*lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Disconnected!");
   lcd.setCursor(0, 1);
-  lcd.print("Check sensors");
+  lcd.print("Check sensors");*/
 
-  /*display.clearDisplay();
+  display.clearDisplay();
 
   display.setTextSize(1);
   display.setTextColor(WHITE);
@@ -207,7 +203,7 @@ void display_disconnect()
   display.setCursor(20, 40);
   display.print("Check sensors");
 
-  display.display();*/
+  display.display();
 }
 void elbow_up()
 {
@@ -222,14 +218,14 @@ void setup()
 {
   Serial.begin(9600);
 
-  // Initialize LCD
+  // Initialize LCD /*
   lcd.begin(16, 2);
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Ready");
+  lcd.print("Ready");*/
 
   // Initialize OLED
-  /* Wire.begin(21, 22);
+  Wire.begin(21, 22);
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDRESS))
   {
@@ -253,7 +249,7 @@ void setup()
   // set up button pins
   pinMode(BUTTON_1_PIN, INPUT_PULLUP);
   pinMode(BUTTON_2_PIN, INPUT_PULLUP);
-  */
+  
 }
 
 void loop() 
@@ -262,7 +258,7 @@ void loop()
   muscle1 = digitalRead(BUTTON_1_PIN) == LOW;
   muscle2 = digitalRead(BUTTON_2_PIN) == LOW;
 
-  // Your muscle logic here
+  // Muscle logic here
   if (muscle1 && muscle2)
   {
     Serial.println("Both muscles");
