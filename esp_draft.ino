@@ -1,76 +1,73 @@
-#include <ESP32Servo.h> 
+#include <ESP32Servo.h>
+#include <DIYables_TFT_Shield.h>
 
-// oled declaration
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+// ---------- TFT wiring ----------
+// Shield label -> ESP32 GPIO
+const int TFT_D0 = 13;
+const int TFT_D1 = 14;
+const int TFT_D2 = 16;
+const int TFT_D3 = 17;
+const int TFT_D4 = 21;
+const int TFT_D5 = 22;
+const int TFT_D6 = 23;
+const int TFT_D7 = 25;
 
-//Adafruit_SSD1306 display(128, 64, &Wire, -1);
-// Pin assignments
+const int TFT_RD  = 26;
+const int TFT_WR  = 27;
+const int TFT_RS  = 4;
+const int TFT_CS  = 5;
+const int TFT_RST = 15;
 
-//esp pins
+// Constructor order matters.
+DIYables_TFT_ILI9486_Shield tft(
+  TFT_D0, TFT_D1, TFT_D2, TFT_D3,
+  TFT_D4, TFT_D5, TFT_D6, TFT_D7,
+  TFT_RD, TFT_WR, TFT_RS, TFT_CS, TFT_RST
+);
+
+// ---------- Servo pins ----------
 const int SERVO_1_PIN = 18;
 const int SERVO_2_PIN = 19;
 
-// LCD connections for esp: RS, E, D4, D5, D6, D7
-// LiquidCrystal lcd(23, 22, 21, 25, 26, 27);
-
-// OLED connections
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
-#define OLED_RESET -1
-#define OLED_ADDRESS 0x3C
-
-Adafruit_SSD1306 display(
-  SCREEN_WIDTH,
-  SCREEN_HEIGHT,
-  &Wire,
-  OLED_RESET
-);
-
-// muscle sensors template and variables
-const int BUTTON_1_PIN = 2;  // Correct muscle
-const int BUTTON_2_PIN = 3;  // Wrong muscle
-
-bool muscle1;
-bool muscle2;
-
-// variables
-const int elbow_angle= 90;
-const int closed_hand_angle=0;
-const int open_hand_angle=180;
-bool happy;
-bool sad;
-bool confused;
-bool sleepy;
-bool disconect;
-bool hand_open;
-bool hand_close;
-bool elbow_is_up;
-bool elbow_is_down;
-int previous_state = -1; // will be used for the loop
-
-// Hardware objects
 Servo hand_servo;
 Servo elbow_servo;
 
+// Placeholder angles: adjust for your mechanism.
+const int elbow_angle = 90;
+const int closed_hand_angle = 0;
+const int open_hand_angle = 180;
 
+// ---------- Muscle test buttons ----------
+const int BUTTON_1_PIN = 32;  // Correct muscle
+const int BUTTON_2_PIN = 33;  // Wrong muscle
 
-// outputs states
+bool muscle1;
+bool muscle2;
+int previous_state = -1;
 
+// ---------- Colors ----------
+const uint16_t BLACK  = 0x0000;
+const uint16_t WHITE  = 0xFFFF;
+const uint16_t GREEN  = 0x07E0;
+const uint16_t RED    = 0xF800;
+const uint16_t YELLOW = 0xFFE0;
+const uint16_t CYAN   = 0x07FF;
+
+// ---------- Servo functions ----------
 void open_hand()
 {
-hand_servo.write(open_hand_angle);
+  hand_servo.write(open_hand_angle);
 }
 
 void close_hand()
 {
-hand_servo.write(closed_hand_angle);
+  hand_servo.write(closed_hand_angle);
 }
 
 void confused_hand()
 {
-for (int i = 0; i < 3; i++) 
+  // Blocks other logic for 1.8 seconds when called.
+  for (int i = 0; i < 3; i++)
   {
     hand_servo.write(70);
     delay(300);
@@ -80,130 +77,6 @@ for (int i = 0; i < 3; i++)
   }
 }
 
-void happy_face()
-{
-  /*lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Happy! :");
-
-  lcd.setCursor(0, 1);
-  lcd.print("Muscle correct");*/
-  display.clearDisplay(); // clears prev face 
-
-  // Drawing eyes
-  display.fillCircle(38, 23, 5, WHITE);
-  display.fillCircle(90, 23, 5, WHITE);
-
-  // Drawing face
-  display.drawLine(40, 40, 50, 48, WHITE);
-  display.drawLine(50, 48, 64, 52, WHITE);
-  display.drawLine(64, 52, 78, 48, WHITE);
-  display.drawLine(78, 48, 88, 40, WHITE);
-
-  display.display(); // sends drawing to OLED
-}
-
-void sad_face()
-{
-  /*lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Sad face :(");
-
-  lcd.setCursor(0, 1);
-  lcd.print("Wrong muscle");*/
-
-  display.clearDisplay();
-
-  // Draw eyes
-  display.fillCircle(38, 23, 5, WHITE);
-  display.fillCircle(90, 23, 5, WHITE);
-
-  // Draw frowning mouth
-  display.drawLine(40, 50, 50, 43, WHITE);
-  display.drawLine(50, 43, 64, 40, WHITE);
-  display.drawLine(64, 40, 78, 43, WHITE);
-  display.drawLine(78, 43, 88, 50, WHITE);
-
-  display.display();
-}
-
-void confused_face()
-{
-  /*lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Confused!?");
-  lcd.setCursor(0, 1);
-  lcd.print("Both pressed");*/
-  
-  display.clearDisplay();
-
-  // Draw eyes
-  display.fillCircle(38, 25, 5, WHITE);
-  display.fillCircle(90, 25, 5, WHITE);
-
-  // Draw uneven eyebrows
-  display.drawLine(27, 12, 45, 8, WHITE);
-  display.drawLine(82, 8, 100, 15, WHITE);
-
-  // Draw confused mouth
-  display.drawLine(48, 47, 60, 43, WHITE);
-  display.drawLine(60, 43, 72, 48, WHITE);
-  display.drawLine(72, 48, 80, 44, WHITE);
-
-  display.display();
-}
-
-void sleepy_face()
-{
-  /*lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Sleepy... zZ");
-  lcd.setCursor(0, 1);
-  lcd.print("Waiting...");
-*/
-  display.clearDisplay();
-
-  // Draw eyes (closed)
-  display.drawLine(27, 25, 49, 25, WHITE);
-  display.drawLine(79, 25, 101, 25, WHITE);
-
-  // Draw neutral mouth
-  display.drawLine(48, 45, 80, 45, WHITE);
-
-  // Draw sleep symbols
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-
-  display.setCursor(105, 8);
-  display.print("Z");
-
-  display.setCursor(112, 1);
-  display.print("Z");
-
-  display.display();
-}
-
-void display_disconnect()
-{
-  /*lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Disconnected!");
-  lcd.setCursor(0, 1);
-  lcd.print("Check sensors");*/
-
-  display.clearDisplay();
-
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-
-  display.setCursor(15, 20);
-  display.print("Disconnected!");
-
-  display.setCursor(20, 40);
-  display.print("Check sensors");
-
-  display.display();
-}
 void elbow_up()
 {
   elbow_servo.write(elbow_angle);
@@ -213,71 +86,167 @@ void elbow_down()
 {
   elbow_servo.write(0);
 }
+
+// ---------- TFT face functions ----------
+// Landscape drawing area: 480 x 320.
+// TFT drawing appears immediately; no display.display() needed.
+
+void face_background(const char* label, uint16_t color)
+{
+  tft.fillScreen(BLACK);
+  tft.setTextWrap(false);
+  tft.setTextSize(3);
+  tft.setTextColor(color);
+  tft.setCursor(20, 18);
+  tft.print(label);
+}
+
+void happy_face()
+{
+  face_background("Correct muscle", GREEN);
+
+  // Happy eyes
+  tft.drawLine(100, 150, 140, 110, WHITE);
+  tft.drawLine(140, 110, 180, 150, WHITE);
+
+  tft.drawLine(300, 150, 340, 110, WHITE);
+  tft.drawLine(340, 110, 380, 150, WHITE);
+
+  // Smile
+  tft.drawLine(175, 210, 205, 240, GREEN);
+  tft.drawLine(205, 240, 275, 240, GREEN);
+  tft.drawLine(275, 240, 305, 210, GREEN);
+}
+
+void sad_face()
+{
+  face_background("Wrong muscle", RED);
+
+  tft.fillCircle(140, 140, 20, WHITE);
+  tft.fillCircle(340, 140, 20, WHITE);
+
+  // Frown
+  tft.drawLine(175, 250, 205, 220, RED);
+  tft.drawLine(205, 220, 275, 220, RED);
+  tft.drawLine(275, 220, 305, 250, RED);
+}
+
+void confused_face()
+{
+  face_background("Both muscles", YELLOW);
+
+  tft.drawCircle(140, 135, 35, WHITE);
+  tft.fillCircle(340, 145, 15, WHITE);
+
+  tft.drawLine(190, 235, 290, 215, YELLOW);
+
+  tft.setTextSize(5);
+  tft.setTextColor(YELLOW);
+  tft.setCursor(400, 80);
+  tft.print("?");
+}
+
+void sleepy_face()
+{
+  face_background("Idle", CYAN);
+
+  // Closed eyes
+  tft.fillRect(100, 140, 80, 5, WHITE);
+  tft.fillRect(300, 140, 80, 5, WHITE);
+
+  tft.drawCircle(240, 230, 16, CYAN);
+
+  tft.setTextSize(3);
+  tft.setTextColor(CYAN);
+  tft.setCursor(390, 75);
+  tft.print("zZ");
+}
+
+void display_disconnect()
+{
+  face_background("Disconnected", RED);
+
+  // X eyes
+  tft.drawLine(110, 110, 170, 170, RED);
+  tft.drawLine(170, 110, 110, 170, RED);
+
+  tft.drawLine(310, 110, 370, 170, RED);
+  tft.drawLine(370, 110, 310, 170, RED);
+
+  tft.fillRect(200, 225, 80, 5, WHITE);
+
+  tft.setTextSize(2);
+  tft.setTextColor(WHITE);
+  tft.setCursor(130, 280);
+  tft.print("Check connection");
+}
+
+// ---------- Setup ----------
 void setup()
 {
   Serial.begin(9600);
 
-  // Initialize LCD
-  //lcd.begin(16, 2);
-  //lcd.clear();
-  //lcd.setCursor(0, 0);
-  //lcd.print("Ready"); 
+  pinMode(BUTTON_1_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_2_PIN, INPUT_PULLUP);
 
-  // Initialize OLED
-  Wire.begin(21, 22);
+  hand_servo.setPeriodHertz(50);
+  elbow_servo.setPeriodHertz(50);
 
-  if (!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDRESS))
-  {
-    Serial.println("OLED initialization failed!");
-
-    while (true)
-    {
-      delay(100);
-    }
-  }
-
-  display.clearDisplay();
-  display.display();
-
-  sleepy_face();
-
-  // Initialize servos
   hand_servo.attach(SERVO_1_PIN);
   elbow_servo.attach(SERVO_2_PIN);
 
-  // set up button pins
-  pinMode(BUTTON_1_PIN, INPUT_PULLUP);
-  pinMode(BUTTON_2_PIN, INPUT_PULLUP);
-  
+  tft.begin();
+  tft.setRotation(1);
+
+  Serial.println("Ready");
 }
 
-void loop() 
+// ---------- Main logic ----------
+void loop()
 {
-  // true = pressed
   muscle1 = digitalRead(BUTTON_1_PIN) == LOW;
   muscle2 = digitalRead(BUTTON_2_PIN) == LOW;
 
-  // Muscle logic here
+  int current_state;
+
   if (muscle1 && muscle2)
-  {
-    Serial.println("Both muscles");
-    confused_face();
-  }
+    current_state = 3;
   else if (muscle1)
-  {
-    Serial.println("Correct muscle");
-    happy_face();
-  }
+    current_state = 1;
   else if (muscle2)
-  {
-    Serial.println("Wrong muscle");
-    sad_face();
-  }
+    current_state = 2;
   else
+    current_state = 0;
+
+  // Update the display only when the state changes.
+  if (current_state != previous_state)
   {
-    Serial.println("Idle");
-    sleepy_face();
+    previous_state = current_state;
+
+    switch (current_state)
+    {
+      case 0:
+        Serial.println("Idle");
+        sleepy_face();
+        break;
+
+      case 1:
+        Serial.println("Correct muscle");
+        happy_face();
+        // Add your desired servo calls here.
+        break;
+
+      case 2:
+        Serial.println("Wrong muscle");
+        sad_face();
+        break;
+
+      case 3:
+        Serial.println("Both muscles");
+        confused_face();
+        break;
+    }
   }
 
-  delay(100);  // Slow down Serial output
+  delay(30);
 }
