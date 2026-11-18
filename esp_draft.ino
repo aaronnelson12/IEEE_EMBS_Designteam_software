@@ -5,7 +5,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-Adafruit_SSD1306 display(128, 64, &Wire, -1);
+//Adafruit_SSD1306 display(128, 64, &Wire, -1);
 // Pin assignments
 
 //esp pins
@@ -100,7 +100,7 @@ void happy_face()
   display.drawLine(64, 52, 78, 48, WHITE);
   display.drawLine(78, 48, 88, 40, WHITE);
 
-  display.display() // sends drawing to OLED
+  display.display(); // sends drawing to OLED
 }
 
 void sad_face()
@@ -181,7 +181,6 @@ void sleepy_face()
   display.print("Z");
 
   display.display();
-  */
 }
 
 void display_disconnect()
@@ -218,11 +217,11 @@ void setup()
 {
   Serial.begin(9600);
 
-  // Initialize LCD /*
-  lcd.begin(16, 2);
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Ready");*/
+  // Initialize LCD
+  //lcd.begin(16, 2);
+  //lcd.clear();
+  //lcd.setCursor(0, 0);
+  //lcd.print("Ready"); 
 
   // Initialize OLED
   Wire.begin(21, 22);
